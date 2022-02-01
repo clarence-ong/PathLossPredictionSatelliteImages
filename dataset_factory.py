@@ -14,7 +14,7 @@ def dataset_factory(use_images=True, image_folder="raw_data\\mapbox_api", transf
     selected_features = [0, 1, 3, 4, 5, 6, 7, 8] #
      # ['SINR', 'RSRP', 'RSRQ', 'Power']	
     selected_targets = [1]
-    dataset_path='dataset' 
+    dataset_path='raw_data' 
     features = np.load("{}\\training_features.npy".format(dataset_path))
     targets = np.load("{}\\training_targets.npy".format(dataset_path))
     test_features =  np.load("{}\\test_features.npy".format(dataset_path))
