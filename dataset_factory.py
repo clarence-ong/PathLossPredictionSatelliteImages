@@ -9,7 +9,7 @@ from skimage import io, transform
 import os
 import matplotlib.pyplot as plt
 
-def dataset_factory(use_images=True, image_folder="/content/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2", transform=True, data_augment_angle=10):
+def dataset_factory(use_images=True, image_folder="/content/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2_resized", transform=True, data_augment_angle=10):
     #Longitude,Latitude,Speed,Distance,Distance_x,Distance_y,PCI_64,PCI_65,PCI_302	
     #selected_features = [0, 1, 3, 4, 5, 6, 7, 8]
     #['Tx_Lon', 'Tx_Lat', 'Rx_Lon', 'Rx_Lat', 'Tx_Height', 'Rx_Height','Tx_Rx_Distance']
@@ -112,5 +112,5 @@ if __name__ == '__main__':
     data = train.__getitem__(2)
 
     fig = plt.figure(figsize=(5,5))
-    plt.imshow(np.reshape(data[1].permute(1,2,0).numpy(), (630,840)), cmap = "gray")
+    plt.imshow(np.reshape(data[1].permute(1,2,0).numpy(), (256,256)), cmap = "gray")
     plt.show()

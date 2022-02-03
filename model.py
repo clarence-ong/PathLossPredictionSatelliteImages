@@ -132,7 +132,7 @@ class SkynetModel(nn.Module):
 
         
         #features_ = torch.cat([features, P],1) # Add computed pathloss to feature input
-
+        
         tmp = 0
         if not self.model_mode == 'features-only':
             if not self.is_cuda:
@@ -145,7 +145,6 @@ class SkynetModel(nn.Module):
             if not self.is_cuda:
                 self.FeatureModel = self.FeatureModel.cpu()
 
-            #F = self.FeatureModel(features_)
             F = self.FeatureModel(features)
             
             tmp += F
