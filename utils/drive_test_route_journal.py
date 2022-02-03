@@ -120,7 +120,7 @@ def get_samples_test_route(X_df, Y_df, route):
         boundary_box = create_boundary_box(start, end, box_width)
         route.add_boundary_box(boundary_box)
         
-        filtered_geo_df = geo_df.loc[geo_df.geometry.intersects(boundary_box.ix[0])]
+        filtered_geo_df = geo_df.loc[geo_df.geometry.intersects(boundary_box[0])]
         filtered_geo_df = sort_by_heading(start,end,filtered_geo_df)
         
         # Store indicies

@@ -9,12 +9,17 @@ from skimage import io, transform
 import os
 import matplotlib.pyplot as plt
 
-def dataset_factory(use_images=True, image_folder="/content/PathLossPredictionSatelliteImages/raw_data/mapbox_api", transform=True, data_augment_angle=10):
+def dataset_factory(use_images=True, image_folder="/content/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2", transform=True, data_augment_angle=10):
     #Longitude,Latitude,Speed,Distance,Distance_x,Distance_y,PCI_64,PCI_65,PCI_302	
-    selected_features = [0, 1, 3, 4, 5, 6, 7, 8] #
-     # ['SINR', 'RSRP', 'RSRQ', 'Power']	
-    selected_targets = [1]
-    dataset_path='/content/PathLossPredictionSatelliteImages/raw_data' 
+    #selected_features = [0, 1, 3, 4, 5, 6, 7, 8]
+    #['Tx_Lon', 'Tx_Lat', 'Rx_Lon', 'Rx_Lat', 'Tx_Height', 'Rx_Height','Tx_Rx_Distance']
+    selected_features = [0, 1, 2, 3, 4, 5, 6]
+    # ['SINR', 'RSRP', 'RSRQ', 'Power']	
+    #selected_targets = [1]
+    # ["RSS"]
+    selected_targets = [0]
+    print(selected_features)
+    dataset_path='/content/PathLossPredictionSatelliteImages/Data_Folder' 
     features = np.load("{}/training_features.npy".format(dataset_path))
     targets = np.load("{}/training_targets.npy".format(dataset_path))
     test_features =  np.load("{}/test_features.npy".format(dataset_path))
@@ -27,6 +32,7 @@ def dataset_factory(use_images=True, image_folder="/content/PathLossPredictionSa
     test_images = np.load("{}/test_image_idx.npy".format(dataset_path))
 
     
+
     features = features[:, selected_features]
     test_features = test_features[:, selected_features]
     features_mu = features_mu[selected_features]
@@ -81,7 +87,7 @@ class DrivetestDataset(Dataset):
             if self.image_folder == None: #images are then pointer to hdf5
                 image = self.image_idx[index]
             else:
-                img_name = os.path.join(self.image_folder, "{}.png".format(idx))
+                img_name = os.path.join(self.image_folder, "{}.jpg".format(idx))
                 image = io.imread(img_name)
                 image = image / 255
             A = torch.from_numpy(image).float().permute(2,0,1)
@@ -103,8 +109,8 @@ class DrivetestDataset(Dataset):
 
 if __name__ == '__main__':
     train, test = dataset_factory()
-    data = train.__getitem__(1)
+    data = train.__getitem__(2)
 
     fig = plt.figure(figsize=(5,5))
-    plt.imshow(data[1].permute(1,2,0).numpy())
+    plt.imshow(np.reshape(data[1].permute(1,2,0).numpy(), (630,840)), cmap = "gray")
     plt.show()

@@ -2,10 +2,10 @@ from utils.fileGen import fileGen
 
 
 
-FEATURE_PATH = "raw_data\\feature_matrix.csv"
-OUTPUT_PATH = "raw_data\\output_matrix.csv"
-IMAGE_PATH = "raw_data\\mapbox_api\\"
+FEATURE_PATH = "/content/PathLossPredictionSatelliteImages/Data_Folder/Feature_Matrix.csv"
+OUTPUT_PATH = "/content/PathLossPredictionSatelliteImages/Data_Folder/Output_Matrix.csv"
+IMAGE_PATH = "/content/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2"
 tofile = True
 if tofile:
     file_generator = fileGen(FEATURE_PATH, OUTPUT_PATH)
-    file_generator.generate_files()
+    file_generator.generate_files(root_dir='/content/PathLossPredictionSatelliteImages/Data_Folder')

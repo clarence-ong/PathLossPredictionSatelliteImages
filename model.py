@@ -127,11 +127,11 @@ class SkynetModel(nn.Module):
 
     def forward(self, features, image, distance, **kwargs):
        
-        P = self.predict_physicals_model(features, distance)
-        P = P.detach()
+        #P = self.predict_physicals_model(features, distance)
+        #P = P.detach()
 
         
-        features_ = torch.cat([features, P],1) # Add computed pathloss to feature input
+        #features_ = torch.cat([features, P],1) # Add computed pathloss to feature input
 
         tmp = 0
         if not self.model_mode == 'features-only':
@@ -145,7 +145,8 @@ class SkynetModel(nn.Module):
             if not self.is_cuda:
                 self.FeatureModel = self.FeatureModel.cpu()
 
-            F = self.FeatureModel(features_)
+            #F = self.FeatureModel(features_)
+            F = self.FeatureModel(features)
             
             tmp += F
         
@@ -161,7 +162,8 @@ class SkynetModel(nn.Module):
         if self.model_mode == 'data-driven':
             sum_out = correction  # fully data-driven thus not a correct of path loss
         else:
-            sum_out = correction + P
+            #sum_out = correction + P
+            sum_out = correction
 
         return correction, sum_out
 

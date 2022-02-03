@@ -10,9 +10,9 @@ from tqdm import tqdm
 
 def argparser():
     parser = argparse.ArgumentParser(description='Skynet Model')
-    parser.add_argument('--batch-size', type=int, default=30, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=4, metavar='N',
                         help='input batch size for training (default: 128)')
-    parser.add_argument('--epochs', type=int, default=, metavar='N',
+    parser.add_argument('--epochs', type=int, default=5, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='enables CUDA training')
@@ -70,7 +70,7 @@ def run(args):
 
     # Instansiate model
     args.num_features = train_dataset.features.shape[1]+1
-    args.image_size = [256, 256]
+    args.image_size = [630, 840]
     args.out_channels = [int(args.out_channels_l1), 100, 50, 25, 12, 1]
     args.kernel_size = [(5,5), (3,3), (3,3), (3,3), (2,2), (2,2)]
     args.nn_layers = [200, 200]

@@ -1,6 +1,7 @@
 from utils.drive_test_route_journal import get_training_test_data
 import pandas as pd
 import numpy as np
+import random
 
 import h5py
 from datetime import datetime
@@ -24,7 +25,7 @@ class fileGen():
         self.__load_features()
         self.__load_outputs()
         self.__construct_training_test()
-        self.__remove_PCI()
+        #self.__remove_PCI()
 
         
         self.__standardize()
@@ -33,7 +34,13 @@ class fileGen():
 
 
     def __construct_training_test(self):
-        self.X_df_train, self.Y_df_train, self.X_df_test, self.Y_df_test = get_training_test_data(self.X_df, self.Y_df, draw=self.draw)
+        #self.X_df_train, self.Y_df_train, self.X_df_test, self.Y_df_test = get_training_test_data(self.X_df, self.Y_df, draw=self.draw)
+        random.seed(1)
+        test_idx = random.sample(range(0, 11250), 1000)
+        self.X_df_train = self.X_df.drop(test_idx, axis=0)
+        self.Y_df_train = self.Y_df.drop(test_idx, axis=0)
+        self.X_df_test = self.X_df.loc[test_idx]
+        self.Y_df_test = self.Y_df.loc[test_idx]
 
     def __remove_PCI(self):
         # Remove PCI column since it's not considered continuous by a discrete label.
@@ -82,7 +89,7 @@ class fileGen():
         for idx, row in X_df.iterrows():
             #pointer_idx = image_idx[idx]
             try:
-                idx_image_path = self.image_path+str(idx)+".png"
+                idx_image_path = self.image_path+str(idx)+".jpg"
                 img = img_to_array(load_img(idx_image_path))
                 self.f[keys[0]][pointer,:,:,:] = img/255.0
                 self.f[keys[1]][pointer,:] = row.values
@@ -98,16 +105,21 @@ class fileGen():
         
     def generate_files(self, root_dir='dataset'):
         # Save arrays
-        np.save('{}\\training_features.npy'.format(root_dir), self.X_df_train.values)
-        np.save('{}\\training_targets.npy'.format(root_dir), self.Y_df_train.values)
-        np.save('{}\\test_features.npy'.format(root_dir), self.X_df_test.values)
-        np.save('{}\\test_targets.npy'.format(root_dir), self.Y_df_test.values)
-        np.save('{}\\features_mu.npy'.format(root_dir), self.mean_X)
-        np.save('{}\\features_std.npy'.format(root_dir), self.std_X)
-        np.save('{}\\targets_mu.npy'.format(root_dir), self.mean_y)
-        np.save('{}\\targets_std.npy'.format(root_dir), self.std_y)
-        np.save('{}\\train_image_idx.npy'.format(root_dir), self.train_image_idx)
-        np.save('{}\\test_image_idx.npy'.format(root_dir), self.test_image_idx)
+        print(self.X_df_test.columns)
+        print(self.X_df_test.head())
+        print(self.Y_df_test.columns)
+        print(self.Y_df_test.head())
+        print(self.train_image_idx)
+        np.save('{}/training_features.npy'.format(root_dir), self.X_df_train.values)
+        np.save('{}/training_targets.npy'.format(root_dir), self.Y_df_train.values)
+        np.save('{}/test_features.npy'.format(root_dir), self.X_df_test.values)
+        np.save('{}/test_targets.npy'.format(root_dir), self.Y_df_test.values)
+        np.save('{}/features_mu.npy'.format(root_dir), self.mean_X)
+        np.save('{}/features_std.npy'.format(root_dir), self.std_X)
+        np.save('{}/targets_mu.npy'.format(root_dir), self.mean_y)
+        np.save('{}/targets_std.npy'.format(root_dir), self.std_y)
+        np.save('{}/train_image_idx.npy'.format(root_dir), self.train_image_idx)
+        np.save('{}/test_image_idx.npy'.format(root_dir), self.test_image_idx)
         print(self.X_df_train.columns)
         print(self.Y_df_train.columns)
         
