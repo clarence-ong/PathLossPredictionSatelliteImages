@@ -77,6 +77,15 @@ def run(args):
     args.nn_layers = [200, 200]
     args.channels = 5
 
+    #args.num_features = train_dataset.features.shape[1] 
+    #args.image_size = [256, 256]
+    #args.out_channels = [250, 150, 70, 30, 12, 1]
+    #args.kernel_size = [(15,15), (9,9), (9,9), (9,9), (2,2), (2,2)]
+    #rgs.nn_layers = [200, 200]
+    #args.channels = 5
+
+    
+
     rsrp_mu = train_dataset.target_mu
     rsrp_std = train_dataset.target_std
    
