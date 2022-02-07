@@ -56,18 +56,20 @@ transform=True, data_augment_angle=10):
     if transform:
         #composed = transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.RandomAffine(data_augment_angle, shear=10), transforms.ToTensor()])
         composed = transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.ToTensor()])
+        composed_2 = transforms.Compose([transforms.RandomAffine(data_augment_angle, shear=10)])
     else:
         composed = None
+        composed_2 = None
     
     # Dataset
-    train_dataset = DrivetestDataset(features, targets, images, target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=composed)
+    train_dataset = DrivetestDataset(features, targets, images, target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=composed, transform_2 = composed_2, dataset_type = "Train")
     #valid_dataset = DrivetestDataset(images, features, targets, valid_idx, target_mu, target_std, features_mean, features_std, use_images, image_folder)
-    test_dataset = DrivetestDataset(test_features, test_targets, test_images,  target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.ToTensor()]))
+    test_dataset = DrivetestDataset(test_features, test_targets, test_images,  target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.ToTensor()]), dataset_type = "Test")
     return train_dataset, test_dataset
 
 
 class DrivetestDataset(Dataset):
-    def __init__(self, features, targets, images, target_mu, target_std, feature_mu, feature_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=None):
+    def __init__(self, features, targets, images, target_mu, target_std, feature_mu, feature_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=None, transform_2 = None, dataset_type = None):
         self.features = features
         self.targets = targets
         self.image_idx = images
@@ -84,6 +86,8 @@ class DrivetestDataset(Dataset):
         self.Rx_Azimuth_Folder = Rx_Azimuth_Folder
         self.Rx_Elevation_Folder = Rx_Elevation_Folder
         self.transform = transform
+        self.transform_2 = transform_2
+        self.dataset_type = dataset_type
 
     def get_811Mhz_idx(self):
         return np.argwhere(np.asarray(self.features[:,7] != 1))
@@ -143,6 +147,8 @@ class DrivetestDataset(Dataset):
                 E = self.transform(E)
 
                 Composed_Image = torch.cat((A, B, C, D, E), 0)
+                if self.dataset_type == "Train":
+                    Composed_Image = self.transform_2(Composed_Image)
 
         return X, Composed_Image, y, dist
 
