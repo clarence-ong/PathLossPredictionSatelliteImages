@@ -75,7 +75,7 @@ def run(args):
     args.out_channels = [int(args.out_channels_l1), 100, 50, 25, 12, 1]
     args.kernel_size = [(5,5), (3,3), (3,3), (3,3), (2,2), (2,2)]
     args.nn_layers = [200, 200]
-    args.channels = 5
+    args.channels = 4
 
     #args.num_features = train_dataset.features.shape[1] 
     #args.image_size = [256, 256]

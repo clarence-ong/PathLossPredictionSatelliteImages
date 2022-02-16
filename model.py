@@ -71,6 +71,63 @@ class FeatureModel(nn.Module):
         x = self.output_layer(x)
         return x
 
+# Model info
+cfgs = {
+    11 : [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    13 : [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    16 : [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    19 : [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M']
+}
+
+
+class VGG(nn.Module):
+    def __init__(self, features, init_weights=True):
+        super(VGG, self).__init__()
+        self.features = features
+        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
+        self.regressor = nn.Sequential(
+            nn.Linear(512 * 7 * 7, 4096), nn.ReLU(inplace=True), nn.Dropout(),
+            nn.Linear(4096, 1024), nn.ReLU(inplace=True), nn.Dropout(),
+            nn.Linear(1024, 256),nn.ReLU(inplace=True), nn.Dropout(),
+            nn.Linear(256, 64),nn.ReLU(inplace=True), nn.Dropout(),
+        )
+        if init_weights:
+            self._initialize_weights()
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.regressor(x)
+        return x
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
+
+
+def make_layers(cfg, batch_norm=False):
+    layers = list()
+    in_channels = 4
+    for v in cfg:
+        if v == 'M': layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+        else:
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            if batch_norm: layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+            else: layers += [conv2d, nn.ReLU(inplace=True)]
+            in_channels = v
+    return nn.Sequential(*layers)
+
+
 class SkynetModel(nn.Module):
     def __init__(self, args, **kwargs):
         super(SkynetModel, self).__init__()
@@ -106,12 +163,21 @@ class SkynetModel(nn.Module):
                 self.ImageModel = self.ImageModel.cuda()
             else:
                 self.ImageModel = self.ImageModel.cpu()
+
         if not self.model_mode == 'images-only':
             self.FeatureModel = FeatureModel(num_features, self.image_output_size, nn_layers=self.nn_layers)
             if self.is_cuda:
                 self.FeatureModel = self.FeatureModel.cuda()
             else:
                 self.FeatureModel = self.FeatureModel.cpu()
+
+        if self.model_mode == "VGGNet":
+            self.VGGNet_Model = VGG(make_layers(cfgs[19], batch_norm=True), init_weights=True)
+            self.image_output_size = 64
+            if self.is_cuda:
+                self.VGGNet_Model = self.VGGNet_Model.cuda()
+            else:
+                self.VGGNet_Model = self.VGGNet_Model.cpu()
             
 
         self.nn2 = nn.ModuleList()
@@ -141,6 +207,7 @@ class SkynetModel(nn.Module):
             I = self.ImageModel(image)
             
             tmp += I
+
         if not self.model_mode == 'images-only':
             if not self.is_cuda:
                 self.FeatureModel = self.FeatureModel.cpu()
@@ -150,6 +217,15 @@ class SkynetModel(nn.Module):
             tmp += F
         
         correction = tmp
+
+        if self.model_mode == "VGGNet":
+            tmp = 0
+            if not self.is_cuda:
+                self.VGGNet_Model = self.VGGNet_Model.cpu()
+
+            I = self.VGGNet_Model(image)
+            
+            tmp += I
 
         for module in self.nn2:
             if self.is_cuda:

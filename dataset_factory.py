@@ -10,11 +10,10 @@ import os
 import matplotlib.pyplot as plt
 
 def dataset_factory(use_images=True, 
-height_folder="/content/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2_resized",
-Tx_Azimuth_Folder = "/content/PathLossPredictionSatelliteImages/Data_Folder/Tx_Azimuth_2_resized",
-Tx_Elevation_Folder = "/content/PathLossPredictionSatelliteImages/Data_Folder/Tx_Elevation_Angle_2_resized",
-Rx_Azimuth_Folder = "/content/PathLossPredictionSatelliteImages/Data_Folder/Rx_Azimuth_2_resized",
-Rx_Elevation_Folder = "/content/PathLossPredictionSatelliteImages/Data_Folder/Tx_Elevation_Angle_2_resized",
+height_folder="/hpctmp/e0310631/DSA4299/PathLossPredictionSatelliteImages/Data_Folder/Height_Images_2_resized",
+Occupancy_Folder = "/hpctmp/e0310631/DSA4299/PathLossPredictionSatelliteImages/Data_Folder/Occupancy_Images_2_resized",
+Tx_Position_Folder = "/hpctmp/e0310631/DSA4299/PathLossPredictionSatelliteImages/Data_Folder/Tx_Azimuth_2_resized",
+Rx_Position_Folder = "/hpctmp/e0310631/DSA4299/PathLossPredictionSatelliteImages/Data_Folder/Rx_Azimuth_2_resized",
 transform=True, data_augment_angle=10):
     #Longitude,Latitude,Speed,Distance,Distance_x,Distance_y,PCI_64,PCI_65,PCI_302	
     #selected_features = [0, 1, 3, 4, 5, 6, 7, 8]
@@ -25,7 +24,7 @@ transform=True, data_augment_angle=10):
     # ["RSS"]
     selected_targets = [0]
     print(selected_features)
-    dataset_path='/content/PathLossPredictionSatelliteImages/Data_Folder' 
+    dataset_path='/hpctmp/e0310631/DSA4299/PathLossPredictionSatelliteImages/Data_Folder' 
     features = np.load("{}/training_features.npy".format(dataset_path))
     targets = np.load("{}/training_targets.npy".format(dataset_path))
     test_features =  np.load("{}/test_features.npy".format(dataset_path))
@@ -62,14 +61,14 @@ transform=True, data_augment_angle=10):
         composed_2 = None
     
     # Dataset
-    train_dataset = DrivetestDataset(features, targets, images, target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=composed, transform_2 = composed_2, dataset_type = "Train")
+    train_dataset = DrivetestDataset(features, targets, images, target_mu, target_std, features_mu, features_std, use_images, height_folder, Occupancy_Folder, Tx_Position_Folder, Rx_Position_Folder, transform=composed, transform_2 = composed_2, dataset_type = "Train")
     #valid_dataset = DrivetestDataset(images, features, targets, valid_idx, target_mu, target_std, features_mean, features_std, use_images, image_folder)
-    test_dataset = DrivetestDataset(test_features, test_targets, test_images,  target_mu, target_std, features_mu, features_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.ToTensor()]), dataset_type = "Test")
+    test_dataset = DrivetestDataset(test_features, test_targets, test_images,  target_mu, target_std, features_mu, features_std, use_images, height_folder, Occupancy_Folder,Tx_Position_Folder, Rx_Position_Folder, transform=transforms.Compose([transforms.ToPILImage(), transforms.Grayscale(), transforms.ToTensor()]), dataset_type = "Test")
     return train_dataset, test_dataset
 
 
 class DrivetestDataset(Dataset):
-    def __init__(self, features, targets, images, target_mu, target_std, feature_mu, feature_std, use_images, height_folder, Tx_Azimuth_Folder, Tx_Elevation_Folder, Rx_Azimuth_Folder, Rx_Elevation_Folder, transform=None, transform_2 = None, dataset_type = None):
+    def __init__(self, features, targets, images, target_mu, target_std, feature_mu, feature_std, use_images, height_folder, Occupancy_Folder, Tx_Position_Folder, Rx_Position_Folder, transform=None, transform_2 = None, dataset_type = None):
         self.features = features
         self.targets = targets
         self.image_idx = images
@@ -81,10 +80,9 @@ class DrivetestDataset(Dataset):
         self.targets_unnorm = (self.targets * self.target_std)+self.target_mu
         self.use_images = use_images
         self.height_folder = height_folder
-        self.Tx_Azimuth_Folder = Tx_Azimuth_Folder
-        self.Tx_Elevation_Folder = Tx_Elevation_Folder
-        self.Rx_Azimuth_Folder = Rx_Azimuth_Folder
-        self.Rx_Elevation_Folder = Rx_Elevation_Folder
+        self.Occupancy_Folder = Occupancy_Folder
+        self.Tx_Position_Folder = Tx_Position_Folder
+        self.Rx_Position_Folder = Rx_Position_Folder
         self.transform = transform
         self.transform_2 = transform_2
         self.dataset_type = dataset_type
@@ -106,34 +104,30 @@ class DrivetestDataset(Dataset):
                 height_image = io.imread(height_name)
                 height_image = height_image / 255
 
-                Tx_A_name = os.path.join(self.Tx_Azimuth_Folder, "{}.jpg".format(idx))
-                Tx_A_image = io.imread(Tx_A_name)
-                Tx_A_image = Tx_A_image / 255
+                occupancy_name = os.path.join(self.Occupancy_Folder, "{}.jpg".format(idx))
+                Occupancy_image = io.imread(occupancy_name)
+                Occupancy_image = Occupancy_image / 255
 
-                Tx_E_name = os.path.join(self.Tx_Elevation_Folder, "{}.jpg".format(idx))
-                Tx_E_image = io.imread(Tx_E_name)
-                Tx_E_image = Tx_E_image / 255
+                Tx_P_name = os.path.join(self.Tx_Position_Folder, "{}.jpg".format(idx))
+                Tx_P_image = io.imread(Tx_P_name)
+                Tx_P_image = Tx_P_image / 255
 
-                Rx_A_name = os.path.join(self.Rx_Azimuth_Folder, "{}.jpg".format(idx))
-                Rx_A_image = io.imread(Rx_A_name)
-                Rx_A_image = Rx_A_image / 255
-
-                Rx_E_name = os.path.join(self.Rx_Elevation_Folder, "{}.jpg".format(idx))
-                Rx_E_image = io.imread(Rx_E_name)
-                Rx_E_image = Rx_E_image / 255
+                Rx_P_name = os.path.join(self.Rx_Position_Folder, "{}.jpg".format(idx))
+                Rx_P_image = io.imread(Rx_P_name)
+                Rx_P_image = Rx_P_image / 255
 
             A = torch.from_numpy(height_image).float().permute(2,0,1)
-            B = torch.from_numpy(Tx_A_image).float().permute(2,0,1)
-            C = torch.from_numpy(Tx_E_image).float().permute(2,0,1)
-            D = torch.from_numpy(Rx_A_image).float().permute(2,0,1)
-            E = torch.from_numpy(Rx_E_image).float().permute(2,0,1)
+            B = torch.from_numpy(Occupancy_image).float().permute(2,0,1)
+            C = torch.from_numpy(Tx_P_image).float().permute(2,0,1)
+            D = torch.from_numpy(Rx_P_image).float().permute(2,0,1)
+
             
         else:
             A = torch.tensor(0)
             B = torch.tensor(0)
             C = torch.tensor(0)
             D = torch.tensor(0)
-            E = torch.tensor(0)
+
         y = torch.from_numpy(self.targets[index]).float() # Target
         dist = torch.abs(torch.tensor(self.distances[index])).float().view(1) # Unormalized distance
         dist = dist * 1000 # to meters
@@ -144,11 +138,13 @@ class DrivetestDataset(Dataset):
                 B = self.transform(B)
                 C = self.transform(C)
                 D = self.transform(D)
-                E = self.transform(E)
 
-                Composed_Image = torch.cat((A, B, C, D, E), 0)
+                Composed_Image = torch.cat((A, B, C, D), 0)
+
                 if self.dataset_type == "Train":
                     Composed_Image = self.transform_2(Composed_Image)
+        else:
+            Composed_Image = A
 
         return X, Composed_Image, y, dist
 
